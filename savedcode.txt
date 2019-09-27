@@ -1,0 +1,18 @@
+System.out.println(arrivalsList);
+
+        Comparator<Arrivals> compareByTime = Comparator.comparing(Arrivals::getTimeToStation);
+
+        arrivalsList.sort(compareByTime);
+
+        for(int i = 0; i != 5; i++){
+
+            String id = arrivalsList.get(i).getLineId();
+
+            String expectedArrival = arrivalsList.get(i).getExpectedArrival();
+            expectedArrival = expectedArrival.substring(expectedArrival.lastIndexOf('T')+1, expectedArrival.lastIndexOf('Z'));
+            String towards = arrivalsList.get(i).getTowards();
+            int time = arrivalsList.get(i).getTimeToStation();
+
+            System.out.println("Bus " + id + " heading towards " + towards + "is expected to arrive: " + expectedArrival + " in " + time + " seconds or " +time/60+ " minutes.");
+        }
+

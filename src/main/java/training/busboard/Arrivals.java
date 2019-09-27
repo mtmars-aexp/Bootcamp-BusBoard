@@ -1,17 +1,24 @@
 package training.busboard;
 
-
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Arrivals {
 
-    int id;
-    String vehicleId;
-    
+    int lineId;
+    int timeToStation;
+    String towards;
 
-    public int getid(){
-        return id;
+
+    public int getTimeToStation(){
+        return timeToStation;
     }
 
+    public int getLineId(){
+        return lineId;
+    }
+
+    public String getTowards(){
+        return towards;
+    }
 }
