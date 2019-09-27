@@ -1,17 +1,11 @@
-package training.busboard;
+package training.busboard.Clients;
 
 import org.glassfish.jersey.jackson.JacksonFeature;
+import training.busboard.Classes.PostcodeClasses.Postcode;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.Comparator;
-import java.util.List;
 
 public class PostcodeClient {
 

@@ -1,4 +1,4 @@
-package training.busboard;
+package training.busboard.Classes.PostcodeClasses;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 

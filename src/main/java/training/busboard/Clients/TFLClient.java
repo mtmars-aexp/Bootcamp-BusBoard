@@ -1,9 +1,11 @@
-package training.busboard;
+package training.busboard.Clients;
 
 import org.glassfish.jersey.jackson.JacksonFeature;
+import training.busboard.Arrivals;
+import training.busboard.Classes.BusStopClasses.NearbyBusStops;
+import training.busboard.Classes.PostcodeClasses.Postcode;
+
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;

@@ -1,21 +1,19 @@
 package training.busboard;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
+import training.busboard.Classes.BusStopClasses.BusStop;
+import training.busboard.Classes.BusStopClasses.NearbyBusStops;
+import training.busboard.Clients.PostcodeClient;
+import training.busboard.Clients.TFLClient;
+import training.busboard.Classes.PostcodeClasses.Postcode;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+
 import java.util.*;
-
-//Tasks:
-//Figure out what the fuck all this code means. Comment it.
-//
-
 
 public class Main {
 
@@ -28,11 +26,14 @@ public class Main {
         PostcodeClient postcodeClient = new PostcodeClient();
         TFLClient tflClient = new TFLClient();
 
-        //List.
+        //Lists.
         List<Arrivals> arrivalsList;
         List<BusStop> busStopsList;
+
+        //Comparators.
         Comparator<BusStop> compareByDistance = Comparator.comparing(BusStop::getDistance);
-        Comparator<Arrivals> compareByTime = Comparator.comparing(Arrivals::getTimeToStation);
+
+        //User inputs.
         String userInput = "NW51TL";
 
         //Start proxy settings.
@@ -58,8 +59,14 @@ public class Main {
         busStopsList.sort(compareByDistance);
 
         //Outputting information.
+        outputBusInformation(userInput, busStopsList, tflClient, sslcontext);
+
+
+    }
+
+    public static void outputBusInformation(String userInput, List<BusStop> busStopsList, TFLClient tflClient, SSLContext sslcontext){
         System.out.println("The 2 nearest bus stops to " + userInput + " are:");
-        for(int i = 0; i != 10; i++){
+        for(int i = 0; i != 2; i++){
 
 
             String naptanId = busStopsList.get(i).getNaptanId();
@@ -69,7 +76,9 @@ public class Main {
 
             System.out.println("Bus stop '" + name + "' towards " + towards + " is " + distance + " meters away.");
 
-            arrivalsList = tflClient.getArrivals(sslcontext, naptanId);
+
+            List<Arrivals> arrivalsList = tflClient.getArrivals(sslcontext, naptanId);
+            Comparator<Arrivals> compareByTime = Comparator.comparing(Arrivals::getTimeToStation);
             arrivalsList.sort(compareByTime);
 
             for(int n = 0; n != arrivalsList.size(); n++){
@@ -82,6 +91,7 @@ public class Main {
             }
             System.out.println(" ");
         }
-
     }
+
+
 }

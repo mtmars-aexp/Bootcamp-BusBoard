@@ -1,4 +1,4 @@
-package training.busboard;
+package training.busboard.Classes.BusStopClasses;
 
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
