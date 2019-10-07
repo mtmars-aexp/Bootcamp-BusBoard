@@ -1,42 +1,25 @@
 package training.busboard;
 
-import training.busboard.Classes.BusStopClasses.BusStop;
-import training.busboard.Classes.BusStopClasses.NearbyBusStops;
-import training.busboard.Clients.PostcodeClient;
-import training.busboard.Clients.TFLClient;
-import training.busboard.Classes.PostcodeClasses.Postcode;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.GenericType;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String args[]) throws KeyManagementException, NoSuchAlgorithmException {
 
-
-        //Declaring variables.
-
-        //Clients.
-        PostcodeClient postcodeClient = new PostcodeClient();
-        TFLClient tflClient = new TFLClient();
-
-        //Lists.
-        List<Arrivals> arrivalsList;
-        List<BusStop> busStopsList;
-
-        //Comparators.
-        Comparator<BusStop> compareByDistance = Comparator.comparing(BusStop::getDistance);
-
-        //User inputs.
-        String userInput = "NW51TL";
-
-        //Start proxy settings.
         System.setProperty("http.proxyHost", "localhost");
         System.setProperty("http.proxyPort", "9090");
         System.setProperty("https.proxyHost", "localhost");
@@ -45,53 +28,93 @@ public class Main {
         SSLContext sslcontext = SSLContext.getInstance("TLS");
 
         sslcontext.init(null, new TrustManager[]{new X509TrustManager() {
-            public void checkClientTrusted(X509Certificate[] arg0, String arg1) {}
-            public void checkServerTrusted(X509Certificate[] arg0, String arg1) {}
-            public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
-        }}, new java.security.SecureRandom());
-        //End proxy settings.
-
-
-        //Grabbing info by APIs (Postcodes API fed into TFL API).
-        Postcode postcode = postcodeClient.getPostcode(sslcontext, "NW51TL");
-        NearbyBusStops nearbyBusStops = tflClient.getNearbyBusStops(sslcontext,postcode);
-        busStopsList = nearbyBusStops.getStopPoints();
-        busStopsList.sort(compareByDistance);
-
-        //Outputting information.
-        outputBusInformation(userInput, busStopsList, tflClient, sslcontext);
-
-
-    }
-
-    public static void outputBusInformation(String userInput, List<BusStop> busStopsList, TFLClient tflClient, SSLContext sslcontext){
-        System.out.println("The 2 nearest bus stops to " + userInput + " are:");
-        for(int i = 0; i != 2; i++){
-
-
-            String naptanId = busStopsList.get(i).getNaptanId();
-            String name = busStopsList.get(i).getCommonName();
-            int distance = (int)busStopsList.get(i).getDistance();
-            String towards = busStopsList.get(i).getTowards();
-
-            System.out.println("Bus stop '" + name + "' towards " + towards + " is " + distance + " meters away.");
-
-
-            List<Arrivals> arrivalsList = tflClient.getArrivals(sslcontext, naptanId);
-            Comparator<Arrivals> compareByTime = Comparator.comparing(Arrivals::getTimeToStation);
-            arrivalsList.sort(compareByTime);
-
-            for(int n = 0; n != arrivalsList.size(); n++){
-
-                int id = arrivalsList.get(n).getLineId();
-                int timeToStation = arrivalsList.get(n).getTimeToStation();
-                //String towards = arrivalsList.get(n).getTowards();
-
-                System.out.println("Bus " + id + " will arrive at this stop in " + timeToStation/60 + " minutes.");
+            public void checkClientTrusted(X509Certificate[] arg0, String arg1) {
             }
-            System.out.println(" ");
+
+            public void checkServerTrusted(X509Certificate[] arg0, String arg1) {
+            }
+
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+        }}, new java.security.SecureRandom());
+
+        Scanner myObj1 = new Scanner(System.in);
+        System.out.println("Enter your post code: ");
+        String postCode = myObj1.nextLine();
+
+        Client client2 = ClientBuilder.newBuilder().register(JacksonFeature.class).sslContext(sslcontext).hostnameVerifier((s1, s2) -> true).build();
+        resultPostCode locationGetter = client2.target("https://api.postcodes.io/postcodes/" + postCode)
+                .request("text/json")
+                .get(resultPostCode.class);
+
+        double latitude = locationGetter.result.getLatitude();
+        double longitude = locationGetter.result.getLongitude();
+
+        Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).sslContext(sslcontext).hostnameVerifier((s1, s2) -> true).build();
+        StopPointsWrapper stops = client.target("https://api.tfl.gov.uk/StopPoint?stopTypes=NaptanPublicBusCoachTram&radius=500&modes=bus%2Ctram&lat=" + latitude + "&lon=" + longitude)
+                .request("text/json")
+                .get(StopPointsWrapper.class);
+
+        for (int i = 1; i <=  stops.stopPoints.size(); i++) {
+            stops.stopPoints.get(i-1).index = i;
+            System.out.println(i + " " + stops.stopPoints.get(i-1).commonName + " " + stops.stopPoints.get(i-1).returnSouthOrNorth());
         }
+
+        Scanner myObj = new Scanner(System.in);
+        System.out.println("Enter the number for the bus stop you want to see times for: ");
+        int number = myObj.nextInt();
+        String stopId = stops.stopPoints.get(number-1).naptanId;
+
+        List<BusInformation> buses = client.target("https://api.tfl.gov.uk/StopPoint/" + stopId + "/Arrivals")
+                .request("text/json")
+                .get(new GenericType<List<BusInformation>>() {});
+
+
+
+        Comparator<BusInformation> compareByTimeToStation = Comparator.comparing(BusInformation::getTimeToStation);
+
+        buses.sort(compareByTimeToStation);
+
+        for (int i = 0; i < buses.size(); i++) {
+
+            String timeDue;
+
+            if (buses.get(i).getTimeToStation() / 60 == 0) {
+                timeDue = "Due";
+            } else if (buses.get(i).getTimeToStation() / 60 == 1) {
+                timeDue = "arriving in 1 minute.";
+            } else {
+                timeDue = "arriving in " + Integer.toString(buses.get(i).getTimeToStation() / 60) + " minutes.";
+            }
+            System.out.println("Bus nr " + buses.get(i).getLineId() + " is going to " + buses.get(i).getDestinationName() + " and is " + timeDue);
+        }
+
+
+        Scanner myObj3 = new Scanner(System.in);
+        System.out.println("Enter bus ID number that you want to see arrival times for: ");
+        int busId = new Integer(myObj3.nextLine());
+
+
+        for (int i = 0; i < buses.size(); i++) {
+
+            String timeDue;
+
+            if (buses.get(i).getTimeToStation() / 60 == 0) {
+                timeDue = "Due";
+            } else if (buses.get(i).getTimeToStation() / 60 == 1) {
+                timeDue = "arriving in 1 minute.";
+            } else {
+                timeDue = "arriving in " + Integer.toString(buses.get(i).getTimeToStation() / 60) + " minutes.";
+            }
+
+            if (buses.get(i).lineId == busId) {
+                System.out.println("Bus nr " + buses.get(i).getLineId() + " is going to " + buses.get(i).getDestinationName() + " and is " + timeDue);
+            }
+
+        }
+
+        System.out.println();
+
     }
-
-
 }

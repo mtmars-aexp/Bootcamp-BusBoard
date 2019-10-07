@@ -1,16 +1,16 @@
-package training.busboard.Classes.BusStopClasses;
-
+package training.busboard;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NearbyBusStops {
+public class StopPointsWrapper {
 
-    ArrayList<BusStop> stopPoints;
+    ArrayList<StopInformation> stopPoints;
 
-    public ArrayList<BusStop> getStopPoints(){
+    public ArrayList<StopInformation> getStopPoints() {
         return stopPoints;
     }
+
 }

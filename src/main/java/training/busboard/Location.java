@@ -1,18 +1,19 @@
-package training.busboard.Classes.PostcodeClasses;
-
+package training.busboard;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
+import java.util.ArrayList;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LonAndLat {
+public class Location {
 
     double longitude;
     double latitude;
 
-    public double getLongitude(){
+    public double getLongitude() {
         return longitude;
     }
 
-    public double getLatitude(){
+    public double getLatitude() {
         return latitude;
     }
 
