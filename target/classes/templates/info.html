@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout">
+
+    <!--@thymesVar id="busInfo" type="training.busboard.web.BusInfo"-->
+
+    <head>
+        <title>Bus Information</title>
+    </head>
+    <body>
+        <div layout:fragment="content" class="container body-content">
+            <h2>Bus Information</h2>
+            <div>
+
+                <table>
+
+                    <tr>
+                        <td>Destiation</td>
+                        <td>LineID</td>
+                        <td>TimeToArrive</td>
+                    </tr>
+
+                    <tr th:each ="prod : ${busInfo.busInformationList}">
+                        <td th:text ="${prod.destinationName}"></td>
+                        <td th:text ="${prod.lineId}"></td>
+                        <td th:text ="${prod.timeToStation}"></td>
+
+                <!-- <p> AAAA <span th:each="${busInfo}"> </span></p> -->
+                <!-- <p> th:text="${busInfo.lineId}"</p> -->
+
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
